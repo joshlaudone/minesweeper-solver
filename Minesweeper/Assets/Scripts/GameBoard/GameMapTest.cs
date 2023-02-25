@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 using UnityEditor;
 using System.IO;
+using System;
 
 public class GameMapTest : MonoBehaviour
 {
@@ -32,14 +33,18 @@ public class GameMapTest : MonoBehaviour
     private string[] inputFiles;
     private Vector3Int startSq;
 
+    bool inVideoMode;
+    float repeatRate;
+
     // Awake is called before start so that the tilemap is generated before the camera is set up
     void Awake()
     {
         inputFiles = Directory.GetFiles(boardFolder, "*.in");
         boardIdx = 0;
+        inVideoMode = false;
+        repeatRate = 1f/60f;
 
         LoadBoard();
-
     }
 
     private void InitializeTilemap()
@@ -96,7 +101,6 @@ public class GameMapTest : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
         Vector3 mouseWorldPos;
         Vector3Int coordinate;
 
@@ -157,6 +161,11 @@ public class GameMapTest : MonoBehaviour
             LoadBoard();
         }
 
+        if (Input.GetKeyDown(KeyCode.L))
+        {
+            LoadBoard();
+        }
+
         if (Input.GetKeyDown(KeyCode.C))
         {
             sweepy.ConstraintMapAlg();
@@ -172,6 +181,17 @@ public class GameMapTest : MonoBehaviour
         {
             sweepy.RecursiveBacktrackingAlg();
             UpdateTiles();
+        }
+
+        if (Input.GetKeyDown(KeyCode.V))
+        {
+            if (!inVideoMode)
+            {
+                sweepy.SetVideoMode(true);
+                inVideoMode = true;
+                InvokeRepeating("VideoModeIteration", 0.0f, repeatRate);
+            }
+            
         }
 
     }
@@ -250,11 +270,47 @@ public class GameMapTest : MonoBehaviour
         sweepy.Initialize(width, height);
     }
 
+    void VideoModeIteration()
+    {
+        bool madeProgress;
+
+        if (mineMap.RemainingMines() == 0 && mineMap.RemainingSafeSquares() == 0)
+        {
+            EndVideoMode();
+            return;
+        }
+
+        sweepy.SinglePointAlg();
+        madeProgress = UpdateTiles();
+        if (madeProgress) return;
+
+        sweepy.SetOverlapAlg();
+        madeProgress = UpdateTiles();
+        if (madeProgress) return;
+
+        sweepy.ConstraintMapAlg();
+        madeProgress = UpdateTiles();
+        if (madeProgress) return;
+
+        sweepy.RecursiveBacktrackingAlg();
+        madeProgress = UpdateTiles();
+        if (madeProgress) return;
+
+        EndVideoMode();
+    }
+
+    void EndVideoMode()
+    {
+        if (!inVideoMode) return;
+        CancelInvoke("VideoModeIteration");
+        inVideoMode = false;
+    }
+
     void RunFullAlg()
     {
         bool madeProgress = true;
 
-        while (madeProgress && mineMap.RemainingMines() != 0)
+        while (madeProgress && (mineMap.RemainingMines() != 0 || mineMap.RemainingSafeSquares() != 0))
         {
             sweepy.SinglePointAlg();
             sweepy.SetOverlapAlg();

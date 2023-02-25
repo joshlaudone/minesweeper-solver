@@ -9,7 +9,7 @@ public class MineMap : MonoBehaviour
 
     int width, height;
     int numMines;
-    int hiddenSafeSquares;
+    int remainingSafeSquares;
     int remainingMines;
     int[,] mineSquares;
     bool[,] flaggedSquares;
@@ -34,9 +34,9 @@ public class MineMap : MonoBehaviour
         revealedSquares = new bool[width, height];
         flaggedSquares = new bool[width, height];
 
-        hiddenSafeSquares = width * height;
+        remainingSafeSquares = width * height;
 
-        numMines = Math.Min(numMines, hiddenSafeSquares - 9);
+        numMines = Math.Min(numMines, remainingSafeSquares - 9);
         SetRemainingMines(numMines);
 
         firstClick = true;
@@ -56,7 +56,7 @@ public class MineMap : MonoBehaviour
         revealedSquares = new bool[width, height];
         flaggedSquares = new bool[width, height];
 
-        hiddenSafeSquares = width * height - numMines;
+        remainingSafeSquares = width * height - numMines;
 
         SetRemainingMines(numMinesIn);
 
@@ -115,7 +115,7 @@ public class MineMap : MonoBehaviour
         {
             revealedSquares[pos.x, pos.y] = true;
             updatedTiles.Add(pos);
-            hiddenSafeSquares--;
+            remainingSafeSquares--;
             if (mineSquares[pos.x, pos.y] == 0)
             {
                 OpenNeighbors(pos);
@@ -221,6 +221,11 @@ public class MineMap : MonoBehaviour
     public int RemainingMines()
     {
         return remainingMines;
+    }
+
+    public int RemainingSafeSquares()
+    {
+        return remainingSafeSquares;
     }
 
     public HashSet<Vector3Int> GetUpdatedTiles()

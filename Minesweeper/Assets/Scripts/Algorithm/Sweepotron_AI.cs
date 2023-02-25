@@ -2,83 +2,27 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using static UnityEditor.PlayerSettings;
+using System.Runtime.CompilerServices;
 
-// https://dspace.cvut.cz/bitstream/handle/10467/68632/F3-BP-2017-Cicvarek-Jan-Algorithms%20for%20Minesweeper%20Game%20Grid%20Generation.pdf
-
-class Constraint
-{
-    public Vector3Int numberSquare;
-    public HashSet<Vector3Int> constrainedSquares;
-    public int minMines;
-    public int maxMines;
-
-    public Constraint(Vector3Int numberSquare, HashSet<Vector3Int> constrainedSquares, int minMines, int maxMines)
-    {
-        this.numberSquare = numberSquare;
-        this.minMines = minMines;
-        this.maxMines = maxMines;
-        this.constrainedSquares = new();
-        foreach (Vector3Int square in constrainedSquares)
-        {
-            this.constrainedSquares.Add(new(square.x, square.y));
-        }
-    }
-
-    public Constraint(Constraint constraint)
-    {
-        this.numberSquare = constraint.numberSquare;
-        this.minMines = constraint.minMines;
-        this.maxMines = constraint.maxMines;
-        this.constrainedSquares = new();
-        foreach (Vector3Int square in constraint.constrainedSquares)
-        {
-            this.constrainedSquares.Add(new(square.x, square.y));
-        }
-    }
-
-    public bool Equals(Constraint other)
-    {
-        if (numberSquare != other.numberSquare) return false;
-        if (minMines != other.minMines) return false;
-        if (maxMines != other.maxMines) return false;
-        if (constrainedSquares.Count != other.constrainedSquares.Count) return false;
-
-        foreach (Vector3Int square in other.constrainedSquares)
-        {
-            if (!constrainedSquares.Contains(square)) return false;
-        }
-
-        return true;
-    }
-
-    // Check if the constraint is applied to the same squares
-    public bool SameSquares(Constraint other)
-    {
-        if (numberSquare != other.numberSquare) return false;
-        if (constrainedSquares.Count != other.constrainedSquares.Count) return false;
-
-        foreach (Vector3Int square in other.constrainedSquares)
-        {
-            if (!constrainedSquares.Contains(square)) return false;
-        }
-
-        return true;
-    }
-}
+[assembly: InternalsVisibleTo("Tests")]
 
 public class Sweepotron_AI : MonoBehaviour
 {
-    //public int width, height, numMines;
-
     public MineMap mineMap;
     bool[,] used;
     int width, height;
+    bool videoMode;
 
     public void Initialize(int widthIn, int heightIn)
     {
         width = widthIn;
         height = heightIn;
         used = new bool[width, height];
+    }
+
+    public void SetVideoMode(bool value)
+    {
+        videoMode = value;
     }
 
     // Opens squares that match the number of neighboring flags and
@@ -120,6 +64,7 @@ public class Sweepotron_AI : MonoBehaviour
                                 mineMap.OpenNeighbors(pos);
                                 used[pos.x, pos.y] = true;
                                 didSomething = true;
+                                if (videoMode) return;
                             } 
 
                             // Flag all neighbors if the number equals the number of unopened squares
@@ -128,6 +73,7 @@ public class Sweepotron_AI : MonoBehaviour
                                 FlagTiles(undecidedNeighbors);
                                 used[pos.x, pos.y] = true;
                                 didSomething = true;
+                                if (videoMode) return;
                             }
 
                         } 
@@ -142,22 +88,18 @@ public class Sweepotron_AI : MonoBehaviour
         }
     }
 
-    //currently only recognizes 2 1 when the 1 has no extra neighbors
     public void SetOverlapAlg()
     {
         HashSet<Vector3Int> nearbyPos;
         HashSet<Vector3Int> currentUndecided, comparisonUndecided;
         Vector3Int currentPos = new();
         int currentNum, comparsionNum;
-        bool breakOut = false;
 
         // Loop over all squares
         for (int ii = 0; ii < width; ii++)
         {
             for (int jj = 0; jj < height; jj++)
             {
-                if (breakOut) break;
-
                 currentPos.x = ii;
                 currentPos.y = jj;
 
@@ -189,14 +131,14 @@ public class Sweepotron_AI : MonoBehaviour
                             comparsionNum - (currentNum - diffSetCurrent.Count) == 0) // ComparisonNum - mines in overlapping squares == 0
                         {
                             OpenTiles(diffSetComparison);
-                            breakOut = true;
+                            return;
                         }
                         if (diffSetCurrent.Count > 0 && // Current square has unique squares
                             currentNum - diffSetCurrent.Count == comparsionNum && // Mines in overlapping squares fulfills the comparison number
                             diffSetCurrent.Count == currentNum - comparsionNum) // Unique squares satisfy all remaining mines
                         {
                             FlagTiles(diffSetCurrent);
-                            breakOut = true;
+                            return;
                         }
                     }
                 }
@@ -229,7 +171,7 @@ public class Sweepotron_AI : MonoBehaviour
             if (!possibleMineSquares.Contains(square))
             {
                 mineMap.OpenTile(square);
-                break;
+                return;
             }
         }
 
@@ -384,16 +326,12 @@ public class Sweepotron_AI : MonoBehaviour
                 currentConstraint = constraintQueue.Dequeue();
             }
 
-            // DEBUG, REMOVE LATER
-            if (constraintQueue.Count > 100) break;
-            // DEBUG, REMOVE LATER
-
             // Check if this lets us open/flag any squares
             madeProgress = ApplyConstraint(currentConstraint);
 
             if (madeProgress) 
             {
-                break;
+                return;
             }
 
             // Combine current constraint with existing constraints
@@ -603,7 +541,7 @@ public class Sweepotron_AI : MonoBehaviour
         return outputConstraint;
     }
 
-    bool IsNeighbor(Vector3Int pos, Vector3Int neighbor)
+    internal static bool IsNeighbor(Vector3Int pos, Vector3Int neighbor)
     {
         return (Mathf.Abs(pos.x - neighbor.x) <= 1) && (Mathf.Abs(pos.y - neighbor.y) <= 1);
     }

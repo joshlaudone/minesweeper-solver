@@ -34,6 +34,7 @@ public class GameMapTest : MonoBehaviour
     private Vector3Int startSq;
 
     bool inVideoMode;
+    bool videoModeAutoAdvance;
     float repeatRate;
 
     // Awake is called before start so that the tilemap is generated before the camera is set up
@@ -43,6 +44,7 @@ public class GameMapTest : MonoBehaviour
         boardIdx = 0;
         inVideoMode = false;
         repeatRate = 1f/60f;
+        videoModeAutoAdvance = true;
 
         LoadBoard();
     }
@@ -185,12 +187,11 @@ public class GameMapTest : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.V))
         {
-            if (!inVideoMode)
-            {
-                sweepy.SetVideoMode(true);
-                inVideoMode = true;
-                InvokeRepeating("VideoModeIteration", 0.0f, repeatRate);
-            }
+            StartVideoMode();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Comma))
+        {
             
         }
 
@@ -270,6 +271,16 @@ public class GameMapTest : MonoBehaviour
         sweepy.Initialize(width, height);
     }
 
+    void StartVideoMode()
+    {
+        if (!inVideoMode)
+        {
+            sweepy.SetVideoMode(true);
+            inVideoMode = true;
+            InvokeRepeating("VideoModeIteration", 0.0f, repeatRate);
+        }
+    }
+
     void VideoModeIteration()
     {
         bool madeProgress;
@@ -304,6 +315,12 @@ public class GameMapTest : MonoBehaviour
         if (!inVideoMode) return;
         CancelInvoke("VideoModeIteration");
         inVideoMode = false;
+        if (videoModeAutoAdvance)
+        {
+            boardIdx += 1;
+            Invoke("LoadBoard", 2.0f);
+            Invoke("StartVideoMode", 4.0f);
+        }
     }
 
     void RunFullAlg()

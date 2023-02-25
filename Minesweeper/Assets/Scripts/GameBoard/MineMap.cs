@@ -241,7 +241,7 @@ public class MineMap : MonoBehaviour
     void SetRemainingMines(int newRemainingMines)
     {
         remainingMines = newRemainingMines;
-        remainingMinesText.text = "Remaining Mines: " + remainingMines;
+        remainingMinesText.text = "" + remainingMines;
     }
 
 }

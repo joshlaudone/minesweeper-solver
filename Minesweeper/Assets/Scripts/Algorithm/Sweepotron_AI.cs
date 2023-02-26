@@ -11,7 +11,8 @@ enum AlgMode
     Single_Square,
     Set_Overlap,
     Constraint_Propogation,
-    Recursive_Backtracking
+    Recursive_Backtracking,
+    Done
 }
 
 public class Sweepotron_AI : MonoBehaviour
@@ -69,6 +70,7 @@ public class Sweepotron_AI : MonoBehaviour
                     madeProgress = RecursiveBacktrackingAlg();
                     if (!madeProgress)
                     {
+                        SetAlgMode(AlgMode.Done);
                         return false;
                     }
                     break;
@@ -103,8 +105,10 @@ public class Sweepotron_AI : MonoBehaviour
             case AlgMode.Recursive_Backtracking:
                 currentModeText.text = "Recursive Backtracking";
                 break;
+            case AlgMode.Done:
+                currentModeText.text = "Done";
+                break;
         }
-        Debug.Log(algMode.ToString());
     }
 
     // Opens squares that match the number of neighboring flags and

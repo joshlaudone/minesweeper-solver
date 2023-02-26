@@ -3,8 +3,16 @@ using UnityEngine;
 using System;
 using static UnityEditor.PlayerSettings;
 using System.Runtime.CompilerServices;
+using TMPro;
 
 [assembly: InternalsVisibleTo("Tests")]
+enum AlgMode
+{
+    Single_Square,
+    Set_Overlap,
+    Constraint_Propogation,
+    Recursive_Backtracking
+}
 
 public class Sweepotron_AI : MonoBehaviour
 {
@@ -12,12 +20,15 @@ public class Sweepotron_AI : MonoBehaviour
     bool[,] used;
     int width, height;
     bool videoMode;
+    public TextMeshProUGUI currentModeText;
+    AlgMode algMode;
 
     public void Initialize(int widthIn, int heightIn)
     {
         width = widthIn;
         height = heightIn;
         used = new bool[width, height];
+        SetAlgMode(AlgMode.Single_Square);
     }
 
     public void SetVideoMode(bool value)
@@ -25,20 +36,92 @@ public class Sweepotron_AI : MonoBehaviour
         videoMode = value;
     }
 
+    public bool RunAlgorithmStep()
+    {
+        bool madeProgress = false;
+        SetAlgMode(AlgMode.Single_Square);
+        while (!madeProgress)
+        {
+            switch (algMode)
+            {
+                case AlgMode.Single_Square:
+                    madeProgress = SingleSquareAlg();
+                    if (!madeProgress)
+                    {
+                        SetAlgMode(AlgMode.Set_Overlap);
+                    }
+                    break;
+                case AlgMode.Set_Overlap:
+                    madeProgress = SetOverlapAlg();
+                    if (!madeProgress)
+                    {
+                        SetAlgMode(AlgMode.Constraint_Propogation);
+                    }
+                    break;
+                case AlgMode.Constraint_Propogation:
+                    madeProgress = ConstraintPropogationAlg();
+                    if (!madeProgress)
+                    {
+                        SetAlgMode(AlgMode.Recursive_Backtracking);
+                    }
+                    break;
+                case AlgMode.Recursive_Backtracking:
+                    madeProgress = RecursiveBacktrackingAlg();
+                    if (!madeProgress)
+                    {
+                        return false;
+                    }
+                    break;
+            }
+        }
+        return madeProgress;
+    }
+
+    public void RunFullAlgorithm()
+    {
+        bool madeProgress = true;
+        while (madeProgress)
+        {
+            madeProgress = RunAlgorithmStep();
+        }
+    }
+
+    void SetAlgMode(AlgMode algModeIn)
+    {
+        algMode = algModeIn;
+        switch (algMode)
+        {
+            case AlgMode.Single_Square:
+                currentModeText.text = "Single Square";
+                break;
+            case AlgMode.Set_Overlap:
+                currentModeText.text = "Set Overlap";
+                break;
+            case AlgMode.Constraint_Propogation:
+                currentModeText.text = "Constraint Propogation";
+                break;
+            case AlgMode.Recursive_Backtracking:
+                currentModeText.text = "Recursive Backtracking";
+                break;
+        }
+        Debug.Log(algMode.ToString());
+    }
+
     // Opens squares that match the number of neighboring flags and
     // flags squares around numbers that are fulfilled by flags
-    public void SinglePointAlg()
+    public bool SingleSquareAlg()
     {
         int currentNum; // number of current square
         int flagNeighbors; // number of neighboring squares that are flagged
 
         Vector3Int pos = new();
-        bool didSomething = true;
+        bool didSomethingThisLoop = true;
+        bool madeProgress = false;
 
         // Break if no progress was made for one iteration
-        while (didSomething)
+        while (didSomethingThisLoop)
         {
-            didSomething = false;
+            didSomethingThisLoop = false;
 
             // Loop over all squares
             for (int ii = 0; ii < width; ii++)
@@ -63,8 +146,9 @@ public class Sweepotron_AI : MonoBehaviour
                             {
                                 mineMap.OpenNeighbors(pos);
                                 used[pos.x, pos.y] = true;
-                                didSomething = true;
-                                if (videoMode) return;
+                                didSomethingThisLoop = true;
+                                madeProgress = true;
+                                if (videoMode) return madeProgress;
                             } 
 
                             // Flag all neighbors if the number equals the number of unopened squares
@@ -72,8 +156,9 @@ public class Sweepotron_AI : MonoBehaviour
                             {
                                 FlagTiles(undecidedNeighbors);
                                 used[pos.x, pos.y] = true;
-                                didSomething = true;
-                                if (videoMode) return;
+                                didSomethingThisLoop = true;
+                                madeProgress = true;
+                                if (videoMode) return madeProgress;
                             }
 
                         } 
@@ -86,9 +171,10 @@ public class Sweepotron_AI : MonoBehaviour
                 }
             }
         }
+        return madeProgress;
     }
 
-    public void SetOverlapAlg()
+    public bool SetOverlapAlg()
     {
         HashSet<Vector3Int> nearbyPos;
         HashSet<Vector3Int> currentUndecided, comparisonUndecided;
@@ -131,25 +217,26 @@ public class Sweepotron_AI : MonoBehaviour
                             comparsionNum - (currentNum - diffSetCurrent.Count) == 0) // ComparisonNum - mines in overlapping squares == 0
                         {
                             OpenTiles(diffSetComparison);
-                            return;
+                            return true;
                         }
                         if (diffSetCurrent.Count > 0 && // Current square has unique squares
                             currentNum - diffSetCurrent.Count == comparsionNum && // Mines in overlapping squares fulfills the comparison number
                             diffSetCurrent.Count == currentNum - comparsionNum) // Unique squares satisfy all remaining mines
                         {
                             FlagTiles(diffSetCurrent);
-                            return;
+                            return true;
                         }
                     }
                 }
             }
         }
+        return false;
     }
 
     // This algorithm is desgined to finish off the unopened squares at the end.
     // In these scenarios, there are just a few mines left and they need to be brute forced,
     // taking into account the total number of mines.
-    public void RecursiveBacktrackingAlg()
+    public bool RecursiveBacktrackingAlg()
     {
         int totalUnassignedMines = mineMap.RemainingMines();
         HashSet<Vector3Int> unknownSquares = GetAllUnknownSquares();
@@ -171,9 +258,11 @@ public class Sweepotron_AI : MonoBehaviour
             if (!possibleMineSquares.Contains(square))
             {
                 mineMap.OpenTile(square);
-                return;
+                return true;
             }
         }
+        return false;
+
 
         void RecursiveBacktrack(int unassignedMines)
         {
@@ -287,7 +376,7 @@ public class Sweepotron_AI : MonoBehaviour
         return output;
     }
 
-    public void ConstraintMapAlg()
+    public bool ConstraintPropogationAlg()
     {
         Dictionary<Vector3Int, List<Constraint>> constrainedNums = new();
         Vector3Int chainStartPos = new(-1,0,0);
@@ -331,7 +420,7 @@ public class Sweepotron_AI : MonoBehaviour
 
             if (madeProgress) 
             {
-                return;
+                return true;
             }
 
             // Combine current constraint with existing constraints
@@ -367,8 +456,8 @@ public class Sweepotron_AI : MonoBehaviour
                 constraintQueue.Enqueue(translatedConstraint);
 
             }
-
         }
+        return false;
     }
 
     // Combine constraint with all existing constraints to create new constraints

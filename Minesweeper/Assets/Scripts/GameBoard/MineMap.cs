@@ -15,7 +15,6 @@ public class MineMap : MonoBehaviour
     bool[,] flaggedSquares;
     bool[,] revealedSquares;
     bool firstClick;
-    bool dead;
 
     public BasicMineGenerator mineGen;
     public TestMineGenerator testMineGen;
@@ -40,7 +39,6 @@ public class MineMap : MonoBehaviour
         SetRemainingMines(numMines);
 
         firstClick = true;
-        dead = false;
 
         //mineGen = GetComponent("MineGen");
 
@@ -61,7 +59,6 @@ public class MineMap : MonoBehaviour
         SetRemainingMines(numMinesIn);
 
         firstClick = false;
-        dead = false;
 
         testMineGen.GenerateMines(mineSquaresIn);
         OpenTile(startSq);
@@ -124,7 +121,6 @@ public class MineMap : MonoBehaviour
         if (mineSquares[pos.x, pos.y] == -1)
         {
             Debug.Log("KA-BOOM");
-            dead = true;
         }
     }
 

@@ -133,7 +133,7 @@ public class GameMap : MonoBehaviour
 
             while (madeProgress)
             {
-                sweepy.SinglePointAlg();
+                sweepy.SingleSquareAlg();
                 sweepy.SetOverlapAlg();
                 madeProgress = UpdateTiles();
             }

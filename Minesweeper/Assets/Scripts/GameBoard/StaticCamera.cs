@@ -19,17 +19,18 @@ public class StaticCamera : MonoBehaviour
     {
         zoomRate = 2f;
         translationRate = 1f;
+        float offsetDown = 1.1f;
 
         tilemapSize = tilemap.size;
 
-        orthoHeight = tilemapSize.y * 0.5f;
+        orthoHeight = tilemapSize.y * 0.5f * offsetDown;
         orthoWidth  = tilemapSize.x * Screen.height / Screen.width * 0.5f;
 
-        maxOrthoSize = Mathf.Max(orthoWidth, orthoHeight);
+        maxOrthoSize = orthoHeight; // Mathf.Max(orthoWidth, orthoHeight);
         minOrthoSize = 5;
 
         cameraPos.x = tilemap.size.x * 0.5f;
-        cameraPos.y = tilemap.size.y * 0.5f;
+        cameraPos.y = offsetDown * tilemap.size.y * 0.5f; // offset down
         cameraPos.z = Camera.main.transform.position.z;
 
         Camera.main.orthographicSize = maxOrthoSize;

@@ -144,12 +144,14 @@ public class GameMapTest : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            RunFullAlg();
+            sweepy.RunFullAlgorithm();
+            UpdateTiles();
         }
 
         if (Input.GetKeyDown(KeyCode.Period))
         {
-            RunPartialAlg();
+            sweepy.RunAlgorithmStep();
+            UpdateTiles();
         }
 
         if (Input.GetKeyDown(KeyCode.P))
@@ -170,7 +172,7 @@ public class GameMapTest : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.C))
         {
-            sweepy.ConstraintMapAlg();
+            sweepy.ConstraintPropogationAlg();
             UpdateTiles();
         }
 
@@ -188,11 +190,6 @@ public class GameMapTest : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.V))
         {
             StartVideoMode();
-        }
-
-        if (Input.GetKeyDown(KeyCode.Comma))
-        {
-            
         }
 
     }
@@ -277,7 +274,7 @@ public class GameMapTest : MonoBehaviour
         {
             sweepy.SetVideoMode(true);
             inVideoMode = true;
-            InvokeRepeating("VideoModeIteration", 0.0f, repeatRate);
+            InvokeRepeating(nameof(VideoModeIteration), 0.0f, repeatRate);
         }
     }
 
@@ -285,87 +282,26 @@ public class GameMapTest : MonoBehaviour
     {
         bool madeProgress;
 
-        if (mineMap.RemainingMines() == 0 && mineMap.RemainingSafeSquares() == 0)
+        madeProgress = sweepy.RunAlgorithmStep();
+        UpdateTiles();
+
+        if (!madeProgress)
         {
             EndVideoMode();
-            return;
         }
-
-        sweepy.SinglePointAlg();
-        madeProgress = UpdateTiles();
-        if (madeProgress) return;
-
-        sweepy.SetOverlapAlg();
-        madeProgress = UpdateTiles();
-        if (madeProgress) return;
-
-        sweepy.ConstraintMapAlg();
-        madeProgress = UpdateTiles();
-        if (madeProgress) return;
-
-        sweepy.RecursiveBacktrackingAlg();
-        madeProgress = UpdateTiles();
-        if (madeProgress) return;
-
-        EndVideoMode();
     }
 
     void EndVideoMode()
     {
         if (!inVideoMode) return;
-        CancelInvoke("VideoModeIteration");
+        CancelInvoke(nameof(VideoModeIteration));
         inVideoMode = false;
         if (videoModeAutoAdvance)
         {
             boardIdx += 1;
-            Invoke("LoadBoard", 2.0f);
-            Invoke("StartVideoMode", 4.0f);
+            Invoke(nameof(LoadBoard), 2.0f);
+            Invoke(nameof(StartVideoMode), 4.0f);
         }
-    }
-
-    void RunFullAlg()
-    {
-        bool madeProgress = true;
-
-        while (madeProgress && (mineMap.RemainingMines() != 0 || mineMap.RemainingSafeSquares() != 0))
-        {
-            sweepy.SinglePointAlg();
-            sweepy.SetOverlapAlg();
-
-            madeProgress = UpdateTiles();
-            if (madeProgress)
-                continue;
-
-            sweepy.ConstraintMapAlg();
-
-            madeProgress = UpdateTiles();
-            if (madeProgress)
-                continue;
-
-            sweepy.RecursiveBacktrackingAlg();
-
-            madeProgress = UpdateTiles();
-        }
-    }
-
-    void RunPartialAlg()
-    {
-        sweepy.SinglePointAlg();
-
-        if (UpdateTiles())
-            return;
-
-        sweepy.SetOverlapAlg();
-
-        if (UpdateTiles())
-            return;
-
-        sweepy.ConstraintMapAlg();
-
-        if (UpdateTiles())
-            return;
-
-        sweepy.RecursiveBacktrackingAlg();
     }
 
     void RunBasicAlg()
@@ -374,7 +310,7 @@ public class GameMapTest : MonoBehaviour
 
         while (madeProgress)
         {
-            sweepy.SinglePointAlg();
+            sweepy.SingleSquareAlg();
             sweepy.SetOverlapAlg();
             madeProgress = UpdateTiles();
         }

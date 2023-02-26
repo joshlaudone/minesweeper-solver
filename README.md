@@ -2,7 +2,9 @@
 
 This project aims to create a minesweeper solving algorithm for the no guessing variation of minesweeper that is as efficient as possible.
 
-For a quick demo, there are YouTube videos here: TODO
+For a quick demo, there are YouTube videos here:
+  * [All Boards](https://youtu.be/cC36c1iUSS8)
+  * [Single Board, slowly with label for which sub-algorithm it is using](https://youtu.be/Dfj6bvHwmMU)
 
 The boards I used for test cases came from minesweeper.online. Their boards for this variant are the hardest I have found.
 

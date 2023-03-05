@@ -43,6 +43,7 @@ Overview of folder structure:
   * The Minesweeper folder contains the Unity project, which has a recreation of Minesweeper in Unity as well as the actual algorithm.
       + All code is located in [Minesweeper/Assets/Scripts](Minesweeper/Assets/Scripts)
       + From there, the algorithm is in [Algorithm/Sweepotron_AI.cs](Minesweeper/Assets/Scripts/Algorithm/Sweepotron_AI.cs)
+          * This could probably use a refactor to get split off into seperate files for each sub-alg as the current file is a chonker
   * minesweeper-image-parser contains a quick python script that I used to translate screenshots of boards from minesweeper.online to a format that could be loaded into the Unity project for testing purposes.
       + This was quick and dirty, so there are some hardcoded values for parsing the image.
       + Depends on two libraries: matplotlib and skimage

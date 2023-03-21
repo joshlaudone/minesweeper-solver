@@ -8,7 +8,7 @@ For a quick demo, there are YouTube videos here:
 
 The boards I used for test cases came from minesweeper.online. Their boards for this variant are the hardest I have found.
 
-I chose to focus on the no-guessing variation as it is the version of the game I usually play and it would be easier to test knowing that all of the boards are solvable.
+I chose to focus on the no-guessing variation because it is the superior version of the game and relies less on random change. It is also easier to test with boards that are known to be solvable.
 
 Here is a high-level overview of the algorithm:
   * The algorithm has 4 sub-algorithms which are successively more powerful, yet computationally expensive.

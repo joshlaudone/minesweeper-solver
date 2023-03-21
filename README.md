@@ -10,8 +10,8 @@ The boards I used for test cases came from minesweeper.online. Their boards for 
 
 I chose to focus on the no-guessing variation because it is the superior version of the game and relies less on random change. It is also easier to test with boards that are known to be solvable.
 
-Here is a high-level overview of the algorithm:
-  * The algorithm has 4 sub-algorithms which are successively more powerful, yet computationally expensive.
+Here is a high-level overview of the solver:
+  * The solver has 4 algorithms which are successively more powerful, yet computationally expensive.
   * The first of these is the single square algorithm, which looks at a single revealed number square at a time.
       + If the number of remaining mines next to the square is equal to the number of unknown squares, it will mark them as mines:
       + <img src="Images/01_Single_Square_Flagging_Square.png" width="150"/>
@@ -43,7 +43,7 @@ Overview of folder structure:
   * The Minesweeper folder contains the Unity project, which has a recreation of Minesweeper in Unity as well as the actual algorithm.
       + All code is located in [Minesweeper/Assets/Scripts](Minesweeper/Assets/Scripts)
       + From there, the algorithm is in [Algorithm/Sweepotron_AI.cs](Minesweeper/Assets/Scripts/Algorithm/Sweepotron_AI.cs)
-          * This could probably use a refactor to get split off into seperate files for each sub-alg as the current file is a chonker
+          * This could probably use a refactor to get split off into seperate files for each algorithm as the current file is a chonker
   * minesweeper-image-parser contains a quick python script that I used to translate screenshots of boards from minesweeper.online to a format that could be loaded into the Unity project for testing purposes.
       + This was quick and dirty, so there are some hardcoded values for parsing the image.
       + Depends on two libraries: matplotlib and skimage
